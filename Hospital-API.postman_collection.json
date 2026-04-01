@@ -1,0 +1,367 @@
+{
+  "info": {
+    "name": "Hospital Management API",
+    "description": "Complete API endpoints for Hospital Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/",
+          "host": ["{{base_url}}"],
+          "path": [""]
+        }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"pass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"pass123\",\n  \"full_name\": \"John Doe\",\n  \"date_of_birth\": \"1990-05-15\",\n  \"gender\": \"Male\",\n  \"phone\": \"1234567890\",\n  \"address\": \"123 Main St\",\n  \"blood_group\": \"O+\",\n  \"emergency_contact\": \"555-0000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "register"]
+            }
+          }
+        },
+        {
+          "name": "Get Patient Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/patients/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Patient Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9876543210\",\n  \"address\": \"456 Oak Ave\",\n  \"emergency_contact\": \"555-1111\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Patient History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/patients/1/history",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "1", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/doctors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "doctors"]
+            }
+          }
+        },
+        {
+          "name": "Search Doctors by Specialization",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/search?specialization=Cardiologist",
+              "host": ["{{base_url}}"],
+              "path": ["api", "doctors", "search"],
+              "query": [
+                {
+                  "key": "specialization",
+                  "value": "Cardiologist"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Specific Doctor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "doctors", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/doctors/1/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "doctors", "1", "appointments"]
+            }
+          }
+        },
+        {
+          "name": "Update Doctor Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"5551234567\",\n  \"available_from\": \"09:00\",\n  \"available_to\": \"18:00\",\n  \"fee\": 600\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/doctors/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "doctors", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": 1,\n  \"doctor_id\": 1,\n  \"appointment_date\": \"2026-04-10\",\n  \"appointment_time\": \"10:00\",\n  \"reason\": \"Checkup\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "appointments"]
+            }
+          }
+        },
+        {
+          "name": "Get All Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "appointments"]
+            }
+          }
+        },
+        {
+          "name": "Filter Appointments by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/appointments/filter?status=Pending&date=2026-04-10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "appointments", "filter"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Pending"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-04-10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": 1,\n  \"cancel_reason\": \"Emergency\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/appointments/1/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "appointments", "1", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/patients",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "patients"]
+            }
+          }
+        },
+        {
+          "name": "Add Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"doc@example.com\",\n  \"password\": \"pass123\",\n  \"full_name\": \"Dr. Smith\",\n  \"specialization\": \"Cardiologist\",\n  \"dept_id\": 1,\n  \"phone\": \"9876543210\",\n  \"experience_yrs\": 5,\n  \"available_from\": \"09:00\",\n  \"available_to\": \"17:00\",\n  \"fee\": 500\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/doctors",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "doctors"]
+            }
+          }
+        },
+        {
+          "name": "Delete Patient",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/patients/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "patients", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ]
+}
