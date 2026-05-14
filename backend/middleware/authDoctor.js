@@ -1,19 +1,22 @@
 import jwt from 'jsonwebtoken'
 
-// doctor authentication middleware
-const authDoctor = async (req, res, next) => {
+const authDoctor = (req, res, next) => {
     const { dtoken } = req.headers
     if (!dtoken) {
         return res.json({ success: false, message: 'Not Authorized Login Again' })
     }
     try {
-        const token_decode = jwt.verify(dtoken, process.env.JWT_SECRET)
-        req.body.docId = token_decode.id
+        const decoded = jwt.verify(dtoken, process.env.JWT_SECRET)
+
+        if (decoded.role !== 'doctor') {  // ✅ FIX: added role check
+            return res.json({ success: false, message: 'Not Authorized' })
+        }
+
+        req.doctorId = decoded.id  // ✅ FIX: was req.body.docId, controllers read req.doctorId
         next()
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        return res.json({ success: false, message: error.message })
     }
 }
 
-export default authDoctor;
+export default authDoctor

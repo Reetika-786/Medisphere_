@@ -1,26 +1,30 @@
-import axios from 'axios';
+import axios from 'axios'
 import React, { useContext, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AppContext } from '../context/AppContext';
-import { toast } from 'react-toastify';
+import { AppContext } from '../context/AppContext'
+import { toast } from 'react-toastify'
 
 const Verify = () => {
 
-    const [searchParams, setSearchParams] = useSearchParams()
+    const [searchParams] = useSearchParams()
 
-    const success = searchParams.get("success")
-    const appointmentId = searchParams.get("appointmentId")
+    const success       = searchParams.get('success')
+    const appointmentId = searchParams.get('appointmentId')
 
     const { backendUrl, token } = useContext(AppContext)
-
     const navigate = useNavigate()
 
-    // Function to verify stripe payment
     const verifyStripe = async () => {
-
         try {
-
-            const { data } = await axios.post(backendUrl + "/api/user/verifyStripe", { success, appointmentId }, { headers: { token } })
+            const { data } = await axios.post(
+                backendUrl + '/api/user/verifyStripe',
+                {
+                    success,
+                    // CHANGED: cast to integer — SQL appointments.appointment_id is INT
+                    appointment_id: Number(appointmentId)
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
 
             if (data.success) {
                 toast.success(data.message)
@@ -28,17 +32,18 @@ const Verify = () => {
                 toast.error(data.message)
             }
 
-            navigate("/my-appointments")
+            navigate('/my-appointments')
 
         } catch (error) {
             toast.error(error.message)
             console.log(error)
         }
-
     }
 
     useEffect(() => {
-        if (token, appointmentId, success) {
+        // CHANGED: fixed broken comma-operator condition: if (token, appointmentId, success)
+        // The comma operator always evaluates to the last value — was never checking token/appointmentId
+        if (token && appointmentId && success) {
             verifyStripe()
         }
     }, [token])

@@ -1,147 +1,192 @@
-import jwt from "jsonwebtoken";
-import appointmentModel from "../models/appointmentModel.js";
-import doctorModel from "../models/doctorModel.js";
-import bcrypt from "bcrypt";
-import validator from "validator";
-import { v2 as cloudinary } from "cloudinary";
-import userModel from "../models/userModel.js";
+import jwt from "jsonwebtoken"
+import db from "../config/mysql.js"
 
-// API for admin login
+// =========================
+// ADMIN LOGIN
+// =========================
 const loginAdmin = async (req, res) => {
     try {
-
         const { email, password } = req.body
 
-        if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-            const token = jwt.sign(email + password, process.env.JWT_SECRET)
-            res.json({ success: true, token })
-        } else {
-            res.json({ success: false, message: "Invalid credentials" })
+        if (
+            email === process.env.ADMIN_EMAIL &&
+            password === process.env.ADMIN_PASSWORD
+        ) {
+            const token = jwt.sign(
+                { role: 'admin', email },
+                process.env.JWT_SECRET
+            )
+            return res.json({ success: true, token })
         }
 
+        res.json({ success: false, message: "Invalid credentials" })
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 
-
-// API to get all appointments list
+// =========================
+// ALL APPOINTMENTS
+// =========================
 const appointmentsAdmin = async (req, res) => {
     try {
-
-        const appointments = await appointmentModel.find({})
-        res.json({ success: true, appointments })
-
+        const [rows] = await db.query(
+            "SELECT * FROM vw_all_appointments ORDER BY appointment_date DESC"
+        )
+        res.json({ success: true, appointments: rows })
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 
-// API for appointment cancellation
+// =========================
+// CANCEL APPOINTMENT
+// =========================
 const appointmentCancel = async (req, res) => {
     try {
-
         const { appointmentId } = req.body
-        await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
 
-        res.json({ success: true, message: 'Appointment Cancelled' })
+        await db.query(
+            `UPDATE appointments
+             SET status = 'Cancelled', cancelled_at = NOW(),
+                 cancel_reason = 'Cancelled by admin'
+             WHERE appointment_id = ?`,
+            [appointmentId]
+        )
 
+        res.json({ success: true, message: "Appointment Cancelled" })
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 
-// API for adding Doctor
+// =========================
+// ADD DOCTOR
+// =========================
 const addDoctor = async (req, res) => {
-
     try {
+        const {
+            name, email, password, specialization,
+            dept_id, phone, experience_yrs,
+            available_from, available_to, fee
+        } = req.body
 
-        const { name, email, password, speciality, degree, experience, about, fees, address } = req.body
-        const imageFile = req.file
-
-        // checking for all data to add doctor
-        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
-            return res.json({ success: false, message: "Missing Details" })
+        if (!name || !email || !password || !specialization) {
+            return res.json({ success: false, message: "Missing required fields" })
         }
 
-        // validating email format
-        if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: "Please enter a valid email" })
+        // Check email not already used
+        const [existing] = await db.query(
+            "SELECT user_id FROM users WHERE email = ?",
+            [email]
+        )
+        if (existing.length > 0) {
+            return res.json({ success: false, message: "Email already registered" })
         }
 
-        // validating strong password
-        if (password.length < 8) {
-            return res.json({ success: false, message: "Please enter a strong password" })
-        }
+        // Insert into users
+        const [userResult] = await db.query(
+            "INSERT INTO users (email, password, role) VALUES (?, ?, 'doctor')",
+            [email, password]
+        )
+        const newUserId = userResult.insertId
 
-        // hashing user password
-        const salt = await bcrypt.genSalt(10); // the more no. round the more time it will take
-        const hashedPassword = await bcrypt.hash(password, salt)
+        // Insert into doctors
+        await db.query(
+            `INSERT INTO doctors
+             (user_id, full_name, specialization, dept_id, phone,
+              experience_yrs, available_from, available_to, fee)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                newUserId, name, specialization,
+                dept_id || null, phone || null,
+                experience_yrs || 0,
+                available_from || '09:00:00',
+                available_to || '17:00:00',
+                fee || 500.00
+            ]
+        )
 
-        // upload image to cloudinary
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
-        const imageUrl = imageUpload.secure_url
-
-        const doctorData = {
-            name,
-            email,
-            image: imageUrl,
-            password: hashedPassword,
-            speciality,
-            degree,
-            experience,
-            about,
-            fees,
-            address: JSON.parse(address),
-            date: Date.now()
-        }
-
-        const newDoctor = new doctorModel(doctorData)
-        await newDoctor.save()
-        res.json({ success: true, message: 'Doctor Added' })
-
+        res.json({ success: true, message: "Doctor Added Successfully" })
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
 }
 
-// API to get all doctors list for admin panel
+// =========================
+// ALL DOCTORS
+// =========================
 const allDoctors = async (req, res) => {
     try {
-
-        const doctors = await doctorModel.find({}).select('-password')
-        res.json({ success: true, doctors })
-
+        const [rows] = await db.query("SELECT * FROM vw_doctor_list")
+        res.json({ success: true, doctors: rows })
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
 }
 
-// API to get dashboard data for admin panel
+// =========================
+// ADMIN DASHBOARD
+// =========================
 const adminDashboard = async (req, res) => {
     try {
+        const [[summary]] = await db.query("SELECT * FROM vw_admin_dashboard")
 
-        const doctors = await doctorModel.find({})
-        const users = await userModel.find({})
-        const appointments = await appointmentModel.find({})
+        const [latestAppointments] = await db.query(
+            `SELECT * FROM vw_all_appointments
+             ORDER BY booked_at DESC LIMIT 5`
+        )
 
-        const dashData = {
-            doctors: doctors.length,
-            appointments: appointments.length,
-            patients: users.length,
-            latestAppointments: appointments.reverse()
-        }
+        res.json({
+            success: true,
+            dashData: {
+                doctors: summary.total_doctors,
+                patients: summary.total_patients,
+                appointments: summary.total_appointments,
+                pending: summary.pending,
+                confirmed: summary.confirmed,
+                completed: summary.completed,
+                cancelled: summary.cancelled,
+                latestAppointments
+            }
+        })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
 
-        res.json({ success: true, dashData })
+// =========================
+// DEACTIVATE / REACTIVATE USER
+// =========================
+const toggleUserStatus = async (req, res) => {
+    try {
+        const { userId } = req.body
 
+        await db.query(
+            "UPDATE users SET is_active = NOT is_active WHERE user_id = ?",
+            [userId]
+        )
+
+        res.json({ success: true, message: "User status updated" })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+// =========================
+// ALL DEPARTMENTS
+// =========================
+const allDepartments = async (req, res) => {
+    try {
+        const [rows] = await db.query("SELECT * FROM departments")
+        res.json({ success: true, departments: rows })
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
@@ -154,5 +199,7 @@ export {
     appointmentCancel,
     addDoctor,
     allDoctors,
-    adminDashboard
+    adminDashboard,
+    toggleUserStatus,
+    allDepartments
 }
